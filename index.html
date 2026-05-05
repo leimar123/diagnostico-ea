@@ -966,19 +966,70 @@ function continuePillar() {
 }
 
 function calculateResults() {
-  // Score by pillar
-  const p1 = answers.slice(0,15).reduce((s,a) => s + (a !== null ? a+1 : 0), 0);
-  const p2 = answers.slice(15,30).reduce((s,a) => s + (a !== null ? a+1 : 0), 0);
-  const p3 = answers.slice(30,45).reduce((s,a) => s + (a !== null ? a+1 : 0), 0);
-  const total = p1 + p2 + p3;
-  const maxP = 60; // 15 questions × 4
+  const total = answers.reduce((s, a) => s + (a !== null ? a + 1 : 0), 0);
+  
+  const htmlCaptura = `
+    <div class="screen active" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 24px;">
+      <h2 style="font-family:'Playfair Display', serif; font-size:28px; margin-bottom:10px; color:var(--terra);">¡Diagnóstico Listo!</h2>
+      <p style="color:rgba(255,255,255,0.6); margin-bottom:20px;">Ingresa tus datos para desbloquear tu perfil y recibir tu plan de acción.</p>
+      
+      <div style="width:100%; max-width:320px; display:flex; flex-direction:column; gap:12px;">
+        <input type="text" id="reg-name" placeholder="Nombre completo" style="padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; outline:none;">
+        <input type="email" id="reg-email" placeholder="Correo electrónico" style="padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; outline:none;">
+        <input type="text" id="reg-country" placeholder="País" style="padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:white; outline:none;">
+        
+        <select id="reg-area" style="padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:#1a1a1a; color:white; outline:none;">
+          <option value="">Área de emprendimiento</option>
+          <option value="Servicios">Servicios / Consultoría</option>
+          <option value="E-commerce">E-commerce / Ventas</option>
+          <option value="Educación">Educación / Cursos</option>
+          <option value="Otro">Otro</option>
+        </select>
 
-  // Find profile
+        <select id="reg-time" style="padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:#1a1a1a; color:white; outline:none;">
+          <option value="">Tiempo emprendiendo</option>
+          <option value="Idea">Solo idea</option>
+          <option value="Menos de 1 año">Menos de 1 año</option>
+          <option value="1 a 3 años">1 a 3 años</option>
+          <option value="Más de 3 años">Más de 3 años</option>
+        </select>
+      </div>
+      
+      <button class="btn-primary" style="margin-top:25px;" onclick="processFinalResults(${total})">Ver mis resultados →</button>
+    </div>
+  `;
+  
+  document.getElementById('assessment').innerHTML = htmlCaptura;
+}function processFinalResults(total) {
+  const nombre = document.getElementById('reg-name').value;
+  const correo = document.getElementById('reg-email').value;
+  const pais = document.getElementById('reg-country').value;
+  const area = document.getElementById('reg-area').value;
+  const tiempo = document.getElementById('reg-time').value;
+
+  if (!nombre || !correo.includes('@') || !pais || !area || !tiempo) {
+    alert("Lei necesita todos los campos para procesar tu diagnóstico.");
+    return;
+  }
+
+  const p1 = answers.slice(0,15).reduce((s,a) => s + (a !== null ? a + 1 : 0), 0);
+  const p2 = answers.slice(15,30).reduce((s,a) => s + (a !== null ? a + 1 : 0), 0);
+  const p3 = answers.slice(30,45).reduce((s,a) => s + (a !== null ? a + 1 : 0), 0);
   const profile = profiles.find(p => total >= p.range[0] && total <= p.range[1]) || profiles[profiles.length-1];
 
-  // Build results
-  buildResults(total, p1, p2, p3, maxP, profile);
+  // ENVÍO AL EXCEL (Asegúrate de poner tu URL de Google Script)
+  fetch('TU_URL_DE_GOOGLE_SCRIPT', {
+    method: 'POST',
+    mode: 'no-cors',
+    body: JSON.stringify({ nombre, correo, pais, area, tiempo, total, perfil: profile.name })
+  });
+
+  // Guardamos para WhatsApp
+  window.currentResults = { nombre, correo, pais, area, tiempo, total, perfil: profile.name };
+
+  buildResults(total, p1, p2, p3, 60, profile);
   showScreen('results');
+}
 
   // Animate bars after render
   setTimeout(() => {
@@ -1164,9 +1215,9 @@ function sendToWhatsApp(perfil, puntaje) {
     return;
   }
   
-  const telefono = "58412XXXXXXX"; // <-- Reemplaza con tu número real (ej: 584121234567)
+  const telefono = "584144923794"; // <-- Reemplaza con tu número real (ej: 584121234567)
   const mensaje = encodeURIComponent(`Hola Lei! Acabo de completar el diagnóstico E.Q. de Equilibrio Academy.\n\nMi puntaje fue: ${puntaje}/180\nMi perfil es: ${perfil}\nMi correo es: ${email}\n\nMe interesa trabajar en mi plan de acción.`);
-  
+ 
   window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
 }
 </script>
