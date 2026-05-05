@@ -1018,7 +1018,7 @@ function calculateResults() {
   const profile = profiles.find(p => total >= p.range[0] && total <= p.range[1]) || profiles[profiles.length-1];
 
   // ENVÍO AL EXCEL (Asegúrate de poner tu URL de Google Script)
-  fetch('TU_URL_DE_GOOGLE_SCRIPT', {
+  fetch('https://script.google.com/macros/s/AKfycbwfAwibyfm543YfLBeeVqfi6eQqUE_ec84FskOIarEkzIB9wD05X3JDug9fTdz_TNTSGw/exec', {
     method: 'POST',
     mode: 'no-cors',
     body: JSON.stringify({ nombre, correo, pais, area, tiempo, total, perfil: profile.name })
