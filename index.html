@@ -342,6 +342,55 @@ body {
 .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
 
+/* ── REGISTRO ── */
+#registro {
+  background: var(--night);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+}
+.reg-card {
+  max-width: 400px;
+  width: 100%;
+  animation: fadeUp 0.5s ease;
+}
+.reg-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 900;
+  color: var(--terra);
+  margin-bottom: 10px;
+}
+.reg-sub {
+  font-size: 14px; color: rgba(255,255,255,0.6);
+  margin-bottom: 28px; line-height: 1.6;
+}
+.reg-fields {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 20px;
+}
+.reg-fields input,
+.reg-fields select {
+  padding: 13px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--charcoal);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.reg-fields input:focus,
+.reg-fields select:focus {
+  border-color: var(--terra);
+}
+.reg-fields select option { background: var(--charcoal); }
+.reg-error {
+  font-size: 13px; color: #e74c3c;
+  margin-bottom: 12px; display: none;
+}
+
 /* ── RESULTS ── */
 #results {
   background: var(--night);
@@ -638,7 +687,36 @@ body {
 </div>
 </div>
 
-<!-- ══ SCREEN 5: RESULTS ══ -->
+<!-- ══ SCREEN 5: REGISTRO ══ -->
+<div class="screen" id="registro">
+<div class="reg-card">
+  <h2 class="reg-title">¡Diagnóstico listo!</h2>
+  <p class="reg-sub">Ingresa tus datos para desbloquear<br>tu perfil de equilibrio empresarial.</p>
+  <div class="reg-fields">
+    <input type="text" id="reg-name" placeholder="Nombre completo" autocomplete="name">
+    <input type="email" id="reg-email" placeholder="Correo electrónico" autocomplete="email">
+    <input type="text" id="reg-country" placeholder="País" autocomplete="country-name">
+    <select id="reg-area">
+      <option value="">Área de emprendimiento</option>
+      <option value="Ventas">Ventas / E-commerce</option>
+      <option value="Servicios">Servicios / Consultoría</option>
+      <option value="Educación">Educación</option>
+      <option value="Otro">Otro</option>
+    </select>
+    <select id="reg-time">
+      <option value="">Tiempo con el negocio</option>
+      <option value="Idea">Solo idea</option>
+      <option value="Menos de 1 año">Menos de 1 año</option>
+      <option value="1 a 3 años">1 a 3 años</option>
+      <option value="Más de 3 años">Más de 3 años</option>
+    </select>
+  </div>
+  <div class="reg-error" id="reg-error">Por favor completa nombre y un correo válido.</div>
+  <button class="btn-primary" style="width:100%" onclick="processFinalResults()">Ver mi diagnóstico →</button>
+</div>
+</div>
+
+<!-- ══ SCREEN 6: RESULTS ══ -->
 <div class="screen" id="results">
 <div class="results-header">
   <div class="results-header-title">Sistema E.Q. · Tu Diagnóstico de Equilibrio Empresarial</div>
@@ -647,15 +725,17 @@ body {
 </div>
 
 <script>
+// ══ GLOBAL STATE ══
 let userName = "";
 let userEmail = "";
 let userCountry = "";
 let userArea = "";
 let userTime = "";
+let finalTotal = 0; // ← guardamos el total para usarlo en processFinalResults
+
 // ══ DATA ══
 const questions = [
   // PILLAR 1: NEGOCIO
-  // Dim 1.1: Claridad del modelo
   { pillar:1, pillarName:'Negocio', dim:'Modelo de Negocio', dimNum:1,
     text:'¿Puedes explicar claramente cómo tu negocio genera dinero en 30 segundos?',
     options:['No tengo claro cómo funciona mi modelo','Tengo una idea general pero no está definido','Lo tengo claro pero no documentado','Está completamente documentado y lo explico fácil']},
@@ -671,8 +751,6 @@ const questions = [
   { pillar:1, pillarName:'Negocio', dim:'Modelo de Negocio', dimNum:5,
     text:'¿Tienes documentado tu proceso de ventas paso a paso?',
     options:['Improviso cada venta sin proceso definido','Tengo pasos mentales pero nada escrito','Tengo el proceso pero no está formalizado','Tengo un proceso documentado y lo sigo consistentemente']},
-
-  // Dim 1.2: Salud financiera
   { pillar:1, pillarName:'Negocio', dim:'Salud Financiera', dimNum:6,
     text:'¿Conoces el margen real de ganancia de cada producto o servicio que vendes?',
     options:['No sé exactamente cuánto gano por cada cosa','Sé aproximadamente pero nunca lo he calculado bien','Lo he calculado alguna vez pero no lo reviso seguido','Conozco el margen exacto de todo lo que vendo']},
@@ -688,8 +766,6 @@ const questions = [
   { pillar:1, pillarName:'Negocio', dim:'Salud Financiera', dimNum:10,
     text:'¿Tu negocio tiene un fondo de emergencia o capital de reserva?',
     options:['No tengo ninguna reserva para el negocio','Tengo algo guardado pero sin criterio definido','Tengo reserva pero por debajo de lo que necesitaría','Tengo un fondo de emergencia de al menos 2 meses']},
-
-  // Dim 1.3: Capacidad operativa
   { pillar:1, pillarName:'Negocio', dim:'Capacidad Operativa', dimNum:11,
     text:'¿Tu negocio funcionaría una semana si tú no estuvieras disponible?',
     options:['Sin mí todo se paraliza completamente','Alguien podría hacer lo básico pero con muchos problemas','Podría funcionar pero con mi supervisión a distancia','Tiene sistemas que funcionan sin depender de mí']},
@@ -707,7 +783,6 @@ const questions = [
     options:['Con el doble de clientes colapsaría totalmente','Podría pero con mucho caos y pérdida de calidad','Podría gestionar algo más con ajustes importantes','Tengo capacidad para crecer sin comprometer la calidad']},
 
   // PILLAR 2: MARCA
-  // Dim 2.1: Posicionamiento
   { pillar:2, pillarName:'Marca', dim:'Posicionamiento y Diferenciación', dimNum:16,
     text:'¿Tu marca tiene una identidad visual consistente (colores, tipografía, estilo)?',
     options:['No tengo identidad visual definida','Tengo algo pero no es consistente en todo','Tengo identidad definida pero no la aplico siempre','Mi marca es visualmente consistente en todos los puntos']},
@@ -723,8 +798,6 @@ const questions = [
   { pillar:2, pillarName:'Marca', dim:'Posicionamiento y Diferenciación', dimNum:20,
     text:'¿Tienes testimonios o casos de éxito documentados de clientes reales?',
     options:['No tengo testimonios documentados de nadie','Tengo algunos mensajes pero no los uso activamente','Tengo testimonios pero no están organizados visualmente','Tengo testimonios en video o texto listos para publicar']},
-
-  // Dim 2.2: Estrategia de marketing
   { pillar:2, pillarName:'Marca', dim:'Estrategia de Marketing', dimNum:21,
     text:'¿Tienes una estrategia de contenido definida para tus redes sociales?',
     options:['Publico cuando puedo o cuando se me ocurre algo','Tengo ideas pero no hay un plan estructurado','Tengo un plan pero no lo sigo consistentemente','Tengo pilares de contenido y calendario definidos']},
@@ -740,8 +813,6 @@ const questions = [
   { pillar:2, pillarName:'Marca', dim:'Estrategia de Marketing', dimNum:25,
     text:'¿Tu presencia digital refleja la calidad real de lo que ofreces?',
     options:['Lo que ofrezco es mejor que lo que se ve en línea','Hay diferencia pero no tanta','Se acerca bastante a lo que ofrezco','Mi presencia digital refleja exactamente mi nivel']},
-
-  // Dim 2.3: Sistema de ventas
   { pillar:2, pillarName:'Marca', dim:'Sistema de Ventas', dimNum:26,
     text:'¿Tienes un proceso definido desde el primer contacto hasta el cierre de venta?',
     options:['Cada venta es diferente, improviso completamente','Tengo pasos mentales pero sin estructura formal','Tengo proceso definido pero no siempre lo sigo','Tengo proceso documentado y lo sigo en todas las ventas']},
@@ -759,7 +830,6 @@ const questions = [
     options:['Mido el éxito por si entró dinero o no','Reviso los números a veces pero sin indicadores fijos','Tengo algunos KPIs pero no los reviso regularmente','Tengo dashboard de métricas y las reviso semanalmente']},
 
   // PILLAR 3: FUNDADOR
-  // Dim 3.1: Salud mental y energía
   { pillar:3, pillarName:'Fundador', dim:'Salud Mental y Energía', dimNum:31,
     text:'¿Cómo describirías tu nivel de energía promedio para trabajar en tu negocio?',
     options:['Agotado la mayoría del tiempo, opero en modo supervivencia','Con altibajos fuertes, más días malos que buenos','Razonablemente bien aunque con momentos de sobrecarga','Con energía consistente y sé cómo recuperarla']},
@@ -775,8 +845,6 @@ const questions = [
   { pillar:3, pillarName:'Fundador', dim:'Salud Mental y Energía', dimNum:35,
     text:'¿Duermes las horas necesarias y sientes que el descanso te recupera?',
     options:['Duermo poco y me levanto cansado constantemente','Irregular, algunos días bien y otros muy mal','Casi siempre duermo suficiente aunque no perfectamente','Sí, tengo rutina de sueño consistente y me recupero bien']},
-
-  // Dim 3.2: Gestión del tiempo
   { pillar:3, pillarName:'Fundador', dim:'Gestión del Tiempo', dimNum:36,
     text:'¿Tienes claridad sobre cuáles son las 3 tareas más importantes de tu semana?',
     options:['Voy resolviendo lo que surge sin plan previo','A veces tengo prioridades claras pero cambian mucho','Generalmente sé qué es prioritario pero lo mezclo con urgente','Siempre tengo mis 3 prioridades claras y las protejo']},
@@ -792,8 +860,6 @@ const questions = [
   { pillar:3, pillarName:'Fundador', dim:'Gestión del Tiempo', dimNum:40,
     text:'¿Tienes una rutina semanal que protege tu productividad?',
     options:['No tengo rutina, cada semana es diferente e improvisada','Tengo intención de rutina pero rara vez la cumplo','Tengo rutina pero con muchas excepciones','Sí, tengo rutina sólida que sostengo la mayoría de semanas']},
-
-  // Dim 3.3: Conocimiento y habilidades
   { pillar:3, pillarName:'Fundador', dim:'Conocimiento y Habilidades', dimNum:41,
     text:'¿Qué tan actualizado estás en las tendencias y novedades de tu industria?',
     options:['No leo ni me informo sobre mi industria regularmente','A veces me entero de cosas pero de forma muy casual','Me mantengo informado aunque no de forma sistemática','Tengo fuentes definidas y me actualizo regularmente']},
@@ -855,10 +921,11 @@ let selectedOption = null;
 let pillarsDone = [false, false, false];
 let pendingTransition = false;
 
-// ══ FUNCTIONS ══
+// ══ SCREEN SYSTEM ══
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
 }
 
 function startAssessment() {
@@ -881,10 +948,8 @@ function renderQuestion(idx) {
   document.getElementById('progress-text').textContent = `Pregunta ${idx+1} de 45`;
   document.getElementById('progress-pct').textContent = pct + '%';
 
-  // Q meta
+  // Q meta & text
   document.getElementById('q-meta').textContent = `${q.pillarName} · ${q.dim}`;
-
-  // Q text
   document.getElementById('q-text').textContent = q.text;
 
   // Options
@@ -898,17 +963,15 @@ function renderQuestion(idx) {
     opts.appendChild(div);
   });
 
-  // Counter
+  // Counter & next btn
   document.getElementById('q-counter').textContent = `${idx+1} / 45`;
-
-  // Next btn
   const btn = document.getElementById('btn-next');
   btn.className = 'btn-next' + (selectedOption !== null ? ' ready' : '');
 
-  // Animate
+  // Animate card
   const card = document.getElementById('question-card');
   card.style.animation = 'none';
-  card.offsetHeight;
+  card.offsetHeight; // reflow
   card.style.animation = 'fadeUp 0.4s ease';
 }
 
@@ -924,10 +987,9 @@ function selectOption(idx) {
 function nextQuestion() {
   if (selectedOption === null) return;
 
-  const q = questions[currentQ];
   const nextIdx = currentQ + 1;
 
-  // Check if we just finished a pillar
+  // Pillar transitions
   if (currentQ === 14 && !pillarsDone[0]) {
     pillarsDone[0] = true;
     showPillarTransition(0, nextIdx);
@@ -940,9 +1002,9 @@ function nextQuestion() {
   }
 
   if (nextIdx >= 45) {
-    // Done
+    // ── FIX: show loading, then go to registration screen ──
     showScreen('loading');
-    setTimeout(calculateResults, 2200);
+    setTimeout(showRegistration, 2200);
     return;
   }
 
@@ -958,7 +1020,6 @@ function showPillarTransition(idx, nextIdx) {
   lbl.style.color = t.labelColor;
   document.getElementById('pt-title').textContent = t.title;
   document.getElementById('pt-desc').textContent = t.desc;
-
   pendingTransition = nextIdx;
   showScreen('pillar-transition');
 }
@@ -970,92 +1031,64 @@ function continuePillar() {
   renderQuestion(currentQ);
 }
 
-    function processFinalResults(total) {
-  userName = document.getElementById('reg-name').value;
-  userEmail = document.getElementById('reg-email').value;
-  userCountry = document.getElementById('reg-country').value;
-  userArea = document.getElementById('reg-area').value;
-  userTime = document.getElementById('reg-time').value;
+// ── FIX: dedicated registration screen, total stored in variable ──
+function showRegistration() {
+  finalTotal = answers.reduce((s, a) => s + (a !== null ? a + 1 : 0), 0);
+  showScreen('registro');
+}
+
+function processFinalResults() {
+  userName    = document.getElementById('reg-name').value.trim();
+  userEmail   = document.getElementById('reg-email').value.trim();
+  userCountry = document.getElementById('reg-country').value.trim();
+  userArea    = document.getElementById('reg-area').value;
+  userTime    = document.getElementById('reg-time').value;
+
+  const errEl = document.getElementById('reg-error');
 
   if (!userName || !userEmail.includes('@')) {
-    alert("Por favor, completa nombre y correo correctamente.");
+    errEl.style.display = 'block';
     return;
   }
+  errEl.style.display = 'none';
 
   const p1 = answers.slice(0,15).reduce((s,a) => s + (a !== null ? a + 1 : 0), 0);
   const p2 = answers.slice(15,30).reduce((s,a) => s + (a !== null ? a + 1 : 0), 0);
   const p3 = answers.slice(30,45).reduce((s,a) => s + (a !== null ? a + 1 : 0), 0);
-  const profile = profiles.find(p => total >= p.range[0] && total <= p.range[1]) || profiles[profiles.length-1];
+  const profile = profiles.find(p => finalTotal >= p.range[0] && finalTotal <= p.range[1]) || profiles[profiles.length-1];
 
-  // ENVÍO AL EXCEL (Asegúrate que sea 'fetch' en minúscula)
+  // Send to Google Sheets
   fetch('https://script.google.com/macros/s/AKfycbwfAwibyfm543YfLBeeVqfi6eQqUE_ec84FskOIarEkzIB9wD05X3JDug9fTdz_TNTSGw/exec', {
     method: 'POST',
     mode: 'no-cors',
-    body: JSON.stringify({ nombre: userName, correo: userEmail, pais: userCountry, area: userArea, tiempo: userTime, total: total, perfil: profile.name })
-  });
+    body: JSON.stringify({
+      nombre: userName, correo: userEmail, pais: userCountry,
+      area: userArea, tiempo: userTime,
+      total: finalTotal, perfil: profile.name
+    })
+  }).catch(() => {}); // silently ignore network errors
 
-  buildResults(total, p1, p2, p3, 60, profile);
+  buildResults(finalTotal, p1, p2, p3, 60, profile);
   showScreen('results');
 }
 
-function calculateResults() {
-  const total = answers.reduce((s, a) => s + (a !== null ? a + 1 : 0), 0);
-  
-  const htmlForm = `
-    <div class="screen active" style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:20px;">
-      <h2 style="font-family:'Playfair Display', serif; color:var(--terra); margin-bottom:10px;">¡Diagnóstico Completado!</h2>
-      <p style="margin-bottom:20px; opacity:0.8;">Ingresa tus datos para desbloquear tu perfil de equilibrio.</p>
-      
-      <div style="width:100%; max-width:320px; display:flex; flex-direction:column; gap:10px;">
-        <input type="text" id="reg-name" placeholder="Nombre completo" style="padding:12px; border-radius:8px; border:1px solid #333; background:#1a1a1a; color:white;">
-        <input type="email" id="reg-email" placeholder="Correo electrónico" style="padding:12px; border-radius:8px; border:1px solid #333; background:#1a1a1a; color:white;">
-        <input type="text" id="reg-country" placeholder="País" style="padding:12px; border-radius:8px; border:1px solid #333; background:#1a1a1a; color:white;">
-        
-        <select id="reg-area" style="padding:12px; border-radius:8px; border:1px solid #333; background:#1a1a1a; color:white;">
-          <option value="">Área de emprendimiento</option>
-          <option value="Ventas">Ventas / E-commerce</option>
-          <option value="Servicios">Servicios / Consultoría</option>
-          <option value="Educación">Educación</option>
-          <option value="Otro">Otro</option>
-        </select>
-
-        <select id="reg-time" style="padding:12px; border-radius:8px; border:1px solid #333; background:#1a1a1a; color:white;">
-          <option value="">Tiempo con el negocio</option>
-          <option value="Idea">Solo idea</option>
-          <option value="Menos de 1 año">Menos de 1 año</option>
-          <option value="1 a 3 años">1 a 3 años</option>
-          <option value="Más de 3 años">Más de 3 años</option>
-        </select>
-      </div>
-      
-      <button class="btn-primary" style="margin-top:20px;" onclick="processFinalResults(${total})">Ver mi diagnóstico →</button>
-    </div>
-  `;
-  
-  document.getElementById('assessment').innerHTML = htmlForm;
-}
-    
 function buildResults(total, p1, p2, p3, maxP, profile) {
-  const pct = Math.round((total/180)*100);
+  const pct   = Math.round((total/180)*100);
   const p1pct = Math.round((p1/maxP)*100);
   const p2pct = Math.round((p2/maxP)*100);
   const p3pct = Math.round((p3/maxP)*100);
 
-  // Identify weakest and strongest
   const pillarData = [
-    { name:'Negocio', score:p1, pct:p1pct, color:'#C4622D' },
-    { name:'Marca', score:p2, pct:p2pct, color:'#b370e8' },
-    { name:'Fundador', score:p3, pct:p3pct, color:'#5abf85' }
+    { name:'Negocio',   score:p1, pct:p1pct, color:'#C4622D' },
+    { name:'Marca',     score:p2, pct:p2pct, color:'#b370e8' },
+    { name:'Fundador',  score:p3, pct:p3pct, color:'#5abf85' }
   ];
-  const sorted = [...pillarData].sort((a,b) => a.score - b.score);
-  const weakest = sorted[0];
+  const sorted   = [...pillarData].sort((a,b) => a.score - b.score);
+  const weakest  = sorted[0];
   const strongest = sorted[sorted.length-1];
-
-  // Generate action plan
   const actionPlan = generateActionPlan(profile, p1pct, p2pct, p3pct);
 
   const html = `
-    <!-- Profile Card -->
     <div class="profile-card profile-${profile.id}">
       <div class="profile-header">
         <div class="profile-icon">${profile.emoji}</div>
@@ -1076,14 +1109,13 @@ function buildResults(total, p1, p2, p3, maxP, profile) {
       </div>
     </div>
 
-    <!-- Pillar Scores -->
     <div class="pillars-section">
       <div class="section-title">Resultado por pilar</div>
       <div class="pillar-scores">
         ${pillarData.map(p => `
         <div class="pillar-row">
           <div class="pillar-row-header">
-            <div class="pillar-row-name">${p.name === 'Negocio' ? '📐 Negocio' : p.name === 'Marca' ? '🎯 Marca' : '💚 Fundador'}</div>
+            <div class="pillar-row-name">${p.name==='Negocio'?'📐 Negocio':p.name==='Marca'?'🎯 Marca':'💚 Fundador'}</div>
             <div class="pillar-row-score" style="color:${p.color}">${p.score} / ${maxP} (${p.pct}%)</div>
           </div>
           <div class="pillar-bar">
@@ -1093,23 +1125,19 @@ function buildResults(total, p1, p2, p3, maxP, profile) {
       </div>
     </div>
 
-    <!-- Diagnosis -->
     <div class="diagnosis-card">
       <h3>📋 Tu diagnóstico</h3>
       <p>${profile.desc}</p>
     </div>
-
     <div class="diagnosis-card" style="border-color:rgba(196,98,45,0.2)">
       <h3>💡 Lo que esto significa</h3>
       <p>${profile.insight}</p>
     </div>
-
     <div class="diagnosis-card">
       <h3>🔍 Tu área más crítica ahora mismo</h3>
       <p>Tu pilar más débil es <strong>${weakest.name}</strong> con ${weakest.pct}% de desarrollo. Es el punto de mayor palanca — fortalecer aquí primero produce los resultados más rápidos. Tu mayor fortaleza es <strong>${strongest.name}</strong> con ${strongest.pct}%. Construye desde ahí.</p>
     </div>
 
-    <!-- Action Plan -->
     <div class="action-plan">
       <div class="action-plan-header">
         <h3>🗺️ Tu Plan de Acción</h3>
@@ -1124,7 +1152,6 @@ function buildResults(total, p1, p2, p3, maxP, profile) {
       </div>
     </div>
 
-    <!-- CTA -->
     <div class="results-cta">
       <h3>¿Quieres trabajar este plan con acompañamiento?</h3>
       <p>Equilibrio Academy es el programa diseñado exactamente para llevar tu negocio del nivel donde está hoy al que siempre imaginaste — con el sistema que nadie te enseñó.</p>
@@ -1137,21 +1164,20 @@ function buildResults(total, p1, p2, p3, maxP, profile) {
 
   document.getElementById('results-body').innerHTML = html;
 
-  // Set IDs for animation
+  // Animate bars after paint
   setTimeout(() => {
-    const p1el = document.getElementById('negocio-fill');
-    const p2el = document.getElementById('marca-fill');
-    const p3el = document.getElementById('fundador-fill');
-    if(p1el) p1el.style.width = p1pct + '%';
-    if(p2el) p2el.style.width = p2pct + '%';
-    if(p3el) p3el.style.width = p3pct + '%';
+    const mainFill = document.getElementById('main-score-fill');
+    if (mainFill) mainFill.style.width = pct + '%';
+    ['negocio','marca','fundador'].forEach((name, i) => {
+      const el = document.getElementById(name + '-fill');
+      if (el) el.style.width = [p1pct, p2pct, p3pct][i] + '%';
+    });
   }, 200);
 }
 
 function generateActionPlan(profile, p1, p2, p3) {
   const actions = [];
 
-  // Pilar 1: Negocio
   if (p1 < 40) {
     actions.push({ priority:'urgent', label:'Urgente', text:'<b>Define tu modelo de negocio en papel esta semana.</b> Responde en una hoja: ¿qué vendes, a quién, a qué precio, cómo se lo entregas y por qué te eligen a ti? Sin esto, todo lo demás está construido sobre arena.' });
     actions.push({ priority:'urgent', label:'Urgente', text:'<b>Calcula tu punto de equilibrio hoy.</b> ¿Cuánto necesitas vender al mes para cubrir todos tus costos? Si no sabes este número, no sabes si tu negocio es viable.' });
@@ -1162,7 +1188,6 @@ function generateActionPlan(profile, p1, p2, p3) {
     actions.push({ priority:'build', label:'Construcción', text:'<b>Evalúa si puedes atender el doble de clientes sin comprometer la calidad.</b> Si la respuesta es no, identifica el cuello de botella y elimínalo antes de crecer.' });
   }
 
-  // Pilar 2: Marca
   if (p2 < 40) {
     actions.push({ priority:'urgent', label:'Urgente', text:'<b>Define tu cliente ideal en una frase específica esta semana.</b> Edad, situación, dolor principal, por qué te compraría. Sin esto, tu marketing le habla a nadie.' });
     actions.push({ priority:'high', label:'Alta prioridad', text:'<b>Crea tu mensaje de posicionamiento en una línea.</b> ¿Qué haces, para quién y por qué eres diferente? Pruébalo con 5 personas de tu red.' });
@@ -1173,9 +1198,8 @@ function generateActionPlan(profile, p1, p2, p3) {
     actions.push({ priority:'build', label:'Construcción', text:'<b>Implementa una secuencia de seguimiento post-venta.</b> El cliente que compró una vez tiene 5 veces más probabilidad de volver. ¿Tienes sistema para activar esa recompra?' });
   }
 
-  // Pilar 3: Fundador
   if (p3 < 40) {
-    actions.push({ priority:'urgent', label:'Urgente', text:'<b>Establece una hora de corte al trabajo esta semana y cúmplela 5 días seguidos.</b> No es opcional. Tu capacidad de decisión cae un 40% cuando operas agotado — y tu negocio paga esa factura.' });
+    actions.push({ priority:'urgent', label:'Urgente', text:'<b>Establece una hora de corte al trabajo esta semana y cúmplela 5 días seguidos.</b> No es opcional. Tu capacidad de decisión cae cuando operas agotado — y tu negocio paga esa factura.' });
     actions.push({ priority:'urgent', label:'Urgente', text:'<b>Registra tu nivel de energía cada mañana del 1 al 10 durante 14 días.</b> Solo con ese dato ya tienes más información sobre tu rendimiento real que la mayoría de emprendedores.' });
   } else if (p3 < 65) {
     actions.push({ priority:'high', label:'Alta prioridad', text:'<b>Bloquea en tu calendario 3 espacios semanales de "tiempo de pensamiento".</b> No para ejecutar — para pensar en tu negocio. El que no tiene tiempo para pensar toma las peores decisiones.' });
@@ -1184,9 +1208,8 @@ function generateActionPlan(profile, p1, p2, p3) {
     actions.push({ priority:'build', label:'Construcción', text:'<b>Formaliza tu sistema de gestión del tiempo en un documento.</b> Lo que funciona para ti tiene que ser replicable en las semanas difíciles, no solo en las buenas.' });
   }
 
-  // Universal actions based on profile
   if (profile.id === 'embrion' || profile.id === 'caotico') {
-    actions.push({ priority:'medium', label:'Esta semana', text:'<b>Descarga la Guía de las 5 Bases para arrancar bien.</b> Está diseñada exactamente para donde estás tú ahora. Enlace en la bio de @yosoy.lei.' });
+    actions.push({ priority:'medium', label:'Esta semana', text:'<b>Escríbele a @yosoy.lei en Instagram.</b> Cuéntale tu perfil y pídele la Guía de las 5 Bases — está diseñada exactamente para donde estás tú ahora.' });
   }
 
   return actions.slice(0, 6);
@@ -1198,26 +1221,9 @@ function restartAssessment() {
   selectedOption = null;
   pillarsDone = [false, false, false];
   pendingTransition = false;
+  finalTotal = 0;
   showScreen('cover');
 }
-
-function sendToWhatsApp(perfil, puntaje) {
-  // Configura tu número real aquí (sin el + y sin espacios)
-  const telefono = "584144923794"; 
-  
-  const mensaje = encodeURIComponent(`¡Hola Lei! Soy ${userName} de ${userCountry}.
-Acabo de completar el diagnóstico de Equilibrio Academy.
-
-• Mi perfil: ${perfil} (${puntaje}/180)
-• Mi área: ${userArea}
-• Tiempo emprendiendo: ${userTime}
-• Mi correo: ${userEmail}
-
-Me gustaría conversar sobre mi plan de acción.`);
-  
-  window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
-}
-
 </script>
 </body>
 </html>
