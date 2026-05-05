@@ -1,266 +1,187 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistema E.Q. — Diagnóstico de Equilibrio Empresarial</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --terra: #C4622D;
-  --terra-dk: #9a4a1f;
-  --terra-lt: rgba(196,98,45,0.12);
-  --night: #0e0e0e;
-  --charcoal: #1a1a1a;
-  --warm: #f5f0e8;
-  --white: #ffffff;
-  --grey: #6b6b6b;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--night);
-  color: var(--white);
-  min-height: 100vh;
-}
-.screen { display:none; min-height:100vh; padding: 40px 24px; }
-.screen.active { display:flex; flex-direction:column; align-items:center; justify-content:center; }
-
-/* COVER */
-.cover-inner { max-width: 560px; text-align: center; }
-.cover-title { font-family: 'Playfair Display', serif; font-size: clamp(36px, 8vw, 64px); margin-bottom: 20px; }
-.cover-title span { color: var(--terra); }
-.btn-primary {
-  background: var(--terra); color: white; border: none; padding: 16px 40px;
-  font-size: 15px; font-weight: 700; border-radius: 50px; cursor: pointer; transition: 0.2s;
-}
-.btn-primary:hover { transform: scale(1.05); background: var(--terra-dk); }
-
-/* ASSESSMENT */
-#assessment { align-items: stretch; }
-.question-card { max-width: 640px; margin: 0 auto; width: 100%; }
-.q-text { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 30px; }
-.q-option {
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s;
-}
-.q-option.selected { border-color: var(--terra); background: var(--terra-lt); }
-
-/* FORMULARIO CAPTURA */
-.input-field {
-  width: 100%; max-width: 320px; padding: 12px; border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05);
-  color: white; margin-bottom: 12px; outline: none; font-family: 'DM Sans', sans-serif;
-}
-select.input-field { background: #1a1a1a; color: #fff; }
-
-/* RESULTS */
-.results-body { max-width: 700px; width: 100%; margin: 0 auto; }
-.pillar-row { background: var(--charcoal); padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-.pillar-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
-.pillar-fill { height: 100%; background: var(--terra); transition: width 1s ease-out; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema E.Q. — Diagnóstico de Equilibrio Empresarial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --terra: #C4622D; --night: #0e0e0e; --charcoal: #1a1a1a; --white: #ffffff; --grey: #6b6b6b; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--night); color: var(--white); min-height: 100vh; }
+        .screen { display:none; min-height:100vh; padding: 40px 24px; flex-direction:column; align-items:center; justify-content:center; }
+        .screen.active { display:flex; }
+        .btn-primary { background: var(--terra); color: white; border: none; padding: 16px 40px; font-size: 15px; font-weight: 700; border-radius: 50px; cursor: pointer; transition: 0.2s; }
+        .input-field { width: 100%; max-width: 320px; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; margin-bottom: 12px; outline: none; }
+        .q-option { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; width: 100%; max-width: 500px; text-align: center; }
+        .pillar-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; width: 100%; }
+        .pillar-fill { height: 100%; background: var(--terra); transition: width 1s; }
+    </style>
 </head>
 <body>
 
 <div class="screen active" id="cover">
-  <div class="cover-inner">
-    <h1 class="cover-title">¿Cómo está<br><span>tu negocio</span><br>de verdad?</h1>
-    <p style="margin-bottom:30px; color:var(--grey);">Diagnóstico de Equilibrio Empresarial por Lei Gómez.</p>
-    <button class="btn-primary" onclick="showScreen('assessment'); renderQuestion(0)">Comenzar diagnóstico →</button>
-  </div>
+    <h1 style="font-family:'Playfair Display',serif; font-size:42px; text-align:center;">¿Cómo está <span style="color:var(--terra);">tu negocio</span> de verdad?</h1>
+    <button class="btn-primary" style="margin-top:30px;" onclick="startApp()">Comenzar diagnóstico →</button>
 </div>
 
 <div class="screen" id="assessment">
-  <div class="question-card">
-    <p id="progress-text" style="color:var(--terra); font-weight:700; margin-bottom:10px;"></p>
-    <div class="q-text" id="q-text"></div>
-    <div id="q-options"></div>
-  </div>
+    <p id="progress" style="color:var(--terra); font-weight:700; margin-bottom:10px;"></p>
+    <h2 id="q-text" style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:25px; text-align:center;"></h2>
+    <div id="q-options" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
 </div>
 
 <div class="screen" id="loading">
-  <div class="cover-inner">
-    <h2 style="font-family:'Playfair Display', serif; margin-bottom:20px;">¡Diagnóstico Completado!</h2>
-    <p style="margin-bottom:20px; color:var(--grey);">Ingresa tus datos para desbloquear tu perfil y plan de acción.</p>
-    <div style="display:flex; flex-direction:column; align-items:center;">
-        <input type="text" id="reg-name" class="input-field" placeholder="Nombre completo">
-        <input type="email" id="reg-email" class="input-field" placeholder="Correo electrónico">
-        <input type="text" id="reg-country" class="input-field" placeholder="País (Ej: Venezuela)">
-        <select id="reg-area" class="input-field">
-            <option value="">Área de emprendimiento</option>
-            <option value="Servicios">Servicios / Consultoría</option>
-            <option value="Ventas">Ventas / E-commerce</option>
-            <option value="Salud">Salud / Bienestar</option>
-            <option value="Educación">Educación</option>
-            <option value="Otro">Otro</option>
-        </select>
-        <select id="reg-time" class="input-field">
-            <option value="">Tiempo emprendiendo</option>
-            <option value="Solo Idea">Solo tengo la idea</option>
-            <option value="Menos de 1 año">Menos de 1 año</option>
-            <option value="1 a 3 años">1 a 3 años</option>
-            <option value="Más de 3 años">Más de 3 años</option>
-        </select>
-        <button class="btn-primary" style="margin-top:10px;" onclick="processFinalResults()">Ver mis resultados →</button>
-    </div>
-  </div>
+    <h2 style="font-family:'Playfair Display',serif; margin-bottom:15px;">¡Diagnóstico Completado!</h2>
+    <input type="text" id="reg-name" class="input-field" placeholder="Nombre completo">
+    <input type="email" id="reg-email" class="input-field" placeholder="Correo electrónico">
+    <input type="text" id="reg-country" class="input-field" placeholder="País / Ciudad">
+    <select id="reg-area" class="input-field">
+        <option value="">Área de negocio</option>
+        <option value="Ventas">Ventas / E-commerce</option>
+        <option value="Servicios">Servicios / Consultoría</option>
+        <option value="Salud">Salud / Bienestar</option>
+        <option value="Educación">Educación</option>
+    </select>
+    <select id="reg-time" class="input-field">
+        <option value="">Tiempo emprendiendo</option>
+        <option value="Idea">Solo tengo la idea</option>
+        <option value="Menos de 1 año">Menos de 1 año</option>
+        <option value="1 a 3 años">1 a 3 años</option>
+        <option value="Más de 3 años">Más de 3 años</option>
+    </select>
+    <button class="btn-primary" onclick="processResults()">Ver mis resultados →</button>
 </div>
 
 <div class="screen" id="results">
-  <div class="results-body" id="results-content"></div>
+    <div id="results-content" style="width:100%; max-width:600px;"></div>
 </div>
 
 <script>
 const questions = [
-  // PILLAR 1: NEGOCIO (15 Qs)
-  { p:1, t:'¿Puedes explicar claramente cómo tu negocio genera dinero en 30 segundos?', o:['No','Un poco','Casi','Totalmente'] },
-  { p:1, t:'¿Sabes exactamente qué problema resuelves y para quién?', o:['No','Idea vaga','Sé a quién pero no lo tengo escrito','Perfil definido'] },
-  { p:1, t:'¿Qué tan diferenciado es tu negocio de la competencia?', o:['Igual','Poca diferencia','Me diferencio pero no se comunica','Diferenciador fuerte'] },
-  { p:1, t:'¿Tienes ingresos recurrentes o predecibles?', o:['No','A veces','Ingresos constantes','Sistema funcionando'] },
-  { p:1, t:'¿Tienes documentado tu proceso de ventas?', o:['No','Pasos mentales','Algo escrito','Documentado y seguido'] },
-  { p:1, t:'¿Conoces el margen real de ganancia por producto/servicio?', o:['No','Idea aproximada','Calculado pero no revisado','Conozco el margen exacto'] },
-  { p:1, t:'¿Tienes separados los ingresos del negocio de los personales?', o:['Mezclado','Intento separar','Separados sin sistema','Separación total con sistema'] },
-  { p:1, t:'¿Sabes cuánto dinero necesita generar tu negocio para sostenerse?', o:['No','Idea vaga','Calculado pero no revisado','Lo sé y lo monitoreo'] },
-  { p:1, t:'¿Registras cada ingreso y egreso?', o:['No','Irregularmente','Mayoría registrados','Registro total diario'] },
-  { p:1, t:'¿Tienes un fondo de emergencia para el negocio?', o:['No','Algo guardado','Fondo insuficiente','Fondo de 2+ meses'] },
-  { p:1, t:'¿Tu negocio funcionaría una semana sin ti?', o:['Colapso','Mucha dificultad','Funciona con supervisión','Sistemas independientes'] },
-  { p:1, t:'¿Tienes documentados los procesos principales?', o:['Nada','Notas sueltas','Escritos pero viejos','Manuales actualizados'] },
-  { p:1, t:'¿Tienes proveedores fijos o alianzas estables?', o:['No','Pocos','Varios fijos','Acuerdos sólidos'] },
-  { p:1, t:'¿Es predecible tu flujo de trabajo semanal?', o:['Caos','Cierta rutina','Bastante predecible','Ritmo estable y planeado'] },
-  { p:1, t:'¿Podrías atender el doble de clientes hoy sin colapsar?', o:['No','Con mucho caos','Sí con ajustes','Capacidad lista'] },
-
-  // PILLAR 2: MARCA (15 Qs)
-  { p:2, t:'¿Tienes una identidad visual consistente?', o:['No','Algo','Definida pero no siempre aplicada','Totalmente consistente'] },
-  { p:2, t:'¿Mensaje claro de 10 segundos?', o:['No','Idea vaga','Tengo mensaje pero no constante','Mensaje claro y memorable'] },
-  { p:2, t:'¿Sabes en qué se diferencia tu oferta?', o:['No','Intuyo','Lo sé pero no lo digo siempre','Comunicación activa de diferencia'] },
-  { p:2, t:'¿Tus clientes podrían describirte claramente?', o:['No','Idea vaga','Bien pero sin lo especial','Descripción perfecta y única'] },
-  { p:2, t:'¿Tienes testimonios documentados?', o:['No','Mensajes sueltos','Organizados pero no públicos','Listos para publicar'] },
-  { p:2, t:'¿Estrategia de contenido definida?', o:['No','Improviso','Plan pero sin constancia','Calendario y pilares listos'] },
-  { p:2, t:'¿Sabes qué contenido genera clientes reales?', o:['No','Intuición','Patrones notados','Datos exactos y replicables'] },
-  { p:2, t:'¿Capturas contactos fuera de redes (WhatsApp/Email)?', o:['No','A veces','Tengo lista pero inactiva','Sistema activo de captura'] },
-  { p:2, t:'¿Conoces el costo de conseguir un cliente nuevo?', o:['No','En tiempo sí','Estimación vaga','Cálculo exacto (CAC)'] },
-  { p:2, t:'¿Tu presencia digital refleja tu calidad real?', o:['No','Se acerca','Bastante bien','Refleja mi máximo nivel'] },
-  { p:2, t:'¿Proceso definido desde contacto a cierre?', o:['No','Pasos mentales','Definido pero no constante','Documentado y sistemático'] },
-  { p:2, t:'¿Sabes manejar las 5 objeciones más comunes?', o:['No','Improviso','Respuestas vagas','Respuestas probadas y listas'] },
-  { p:2, t:'¿Estrategias de retención de clientes?', o:['No','Buen servicio nada más','Acciones sueltas','Sistema de recompra activo'] },
-  { p:2, t:'¿Sabes cuánto vale un cliente en el tiempo (LTV)?', o:['No','Idea vaga','Número aproximado','Dato exacto usado para decidir'] },
-  { p:2, t:'¿Métricas claras de éxito en ventas?', o:['No','Solo si entró dinero','KPIs sueltos','Dashboard semanal revisado'] },
-
-  // PILLAR 3: FUNDADOR (15 Qs)
-  { p:3, t:'¿Nivel de energía promedio?', o:['Agotado','Altibajos fuertes','Bien con sobrecargas','Energía alta constante'] },
-  { p:3, t:'¿Ansiedad o estrés relacionado al negocio?', o:['Constante','Varias veces/semana','Ocasional','Rara vez, bajo control'] },
-  { p:3, t:'¿Desconexión real sin culpa?', o:['Nunca','A veces con culpa','Casi siempre','Límites claros, desconexión total'] },
-  { p:3, t:'¿Decisiones tomadas en buen estado mental?', o:['Bajo presión siempre','Variable','Generalmente bien','Estado cuidado conscientemente'] },
-  { p:3, t:'¿Descanso reparador y rutina de sueño?', o:['No','Irregular','Casi siempre bien','Rutina sólida y reparadora'] },
-  { p:3, t:'¿Claridad en las 3 tareas más importantes de la semana?', o:['No','Cambian mucho','Sé lo prioritario','Prioridades claras y protegidas'] },
-  { p:3, t:'¿Delegas tareas que no requieren tu presencia?', o:['Hago todo','Intento pero fallo','Delego algo','Sistema de delegación claro'] },
-  { p:3, t:'¿Tiempo para pensar SOBRE el negocio (estrategia)?', o:['Nunca','Rara vez','Trato de equilibrar','Bloques estratégicos fijos'] },
-  { p:3, t:'¿Sensación de avance al final del día?', o:['Solo ocupado','A veces progreso','Mayoría de días con progreso','Claridad total de logros diarios'] },
-  { p:3, t:'¿Rutina semanal de productividad?', o:['No','Intento','Con muchas excepciones','Rutina sólida y sostenida'] },
-  { p:3, t:'¿Actualización en tendencias de tu industria?', o:['No','Casual','Informado','Fuentes fijas y constante'] },
-  { p:3, t:'¿Inversión en formación profesional?', o:['No','Ocasional','Sin plan claro','Plan de formación activo'] },
-  { p:3, t:'¿Conoces tus fortalezas y debilidades reales?', o:['No','Intuición','Lo sé pero no actúo','Estrategia basada en capacidades'] },
-  { p:3, t:'¿Red de apoyo (mentores/pares)?', o:['Solo','Pocos contactos','Red informal','Red activa de apoyo'] },
-  { p:3, t:'¿Metas claras y medibles a 90 días?', o:['No','Vagas','Documentadas pero sin revisión','Metas SMART revisadas semanalmente'] }
+    // PILLAR 1: NEGOCIO (1-15)
+    { p:1, t:'¿Puedes explicar claramente cómo tu negocio genera dinero en 30 segundos?', o:['No','Un poco','Casi','Totalmente'] },
+    { p:1, t:'¿Sabes exactamente qué problema resuelves y para quién?', o:['No','Idea vaga','Sé a quién pero no lo tengo escrito','Perfil definido'] },
+    { p:1, t:'¿Qué tan diferenciado es tu negocio de la competencia?', o:['Igual','Poca diferencia','Me diferencio pero no se comunica','Diferenciador fuerte'] },
+    { p:1, t:'¿Tienes ingresos recurrentes o predecibles?', o:['No','A veces','Ingresos constantes','Sistema funcionando'] },
+    { p:1, t:'¿Tienes documentado tu proceso de ventas?', o:['No','Pasos mentales','Algo escrito','Documentado y seguido'] },
+    { p:1, t:'¿Conoces el margen real de ganancia por producto/servicio?', o:['No','Idea aproximada','Calculado pero no revisado','Conozco el margen exacto'] },
+    { p:1, t:'¿Tienes separados los ingresos del negocio de los personales?', o:['Mezclado','Intento separar','Separados sin sistema','Separación total con sistema'] },
+    { p:1, t:'¿Sabes cuánto dinero necesita generar tu negocio para sostenerse?', o:['No','Idea vaga','Calculado pero no revisado','Lo sé y lo monitoreo'] },
+    { p:1, t:'¿Registras cada ingreso y egreso?', o:['No','Irregularmente','Mayoría registrados','Registro total diario'] },
+    { p:1, t:'¿Tienes un fondo de emergencia para el negocio?', o:['No','Algo guardado','Fondo insuficiente','Fondo de 2+ meses'] },
+    { p:1, t:'¿Tu negocio funcionaría una semana sin ti?', o:['Colapso','Mucha dificultad','Funciona con supervisión','Sistemas independientes'] },
+    { p:1, t:'¿Tienes documentados los procesos principales?', o:['Nada','Notas sueltas','Escritos pero viejos','Manuales actualizados'] },
+    { p:1, t:'¿Tienes proveedores fijos o alianzas estables?', o:['No','Pocos','Varios fijos','Acuerdos sólidos'] },
+    { p:1, t:'¿Es predecible tu flujo de trabajo semanal?', o:['Caos','Cierta rutina','Bastante predecible','Ritmo estable y planeado'] },
+    { p:1, t:'¿Podrías atender el doble de clientes hoy sin colapsar?', o:['No','Con mucho caos','Sí con ajustes','Capacidad lista'] },
+    // PILLAR 2: MARCA (16-30)
+    { p:2, t:'¿Tienes una identidad visual consistente?', o:['No','Algo','Definida pero no siempre aplicada','Totalmente consistente'] },
+    { p:2, t:'¿Mensaje claro de 10 segundos?', o:['No','Idea vaga','Tengo mensaje pero no constante','Mensaje claro y memorable'] },
+    { p:2, t:'¿Sabes en qué se diferencia tu oferta?', o:['No','Intuyo','Lo sé pero no lo digo siempre','Comunicación activa de diferencia'] },
+    { p:2, t:'¿Tus clientes podrían describirte claramente?', o:['No','Idea vaga','Bien pero sin lo especial','Descripción perfecta y única'] },
+    { p:2, t:'¿Tienes testimonios documentados?', o:['No','Mensajes sueltos','Organizados pero no públicos','Listos para publicar'] },
+    { p:2, t:'¿Estrategia de contenido definida?', o:['No','Improviso','Plan pero sin constancia','Calendario y pilares listos'] },
+    { p:2, t:'¿Sabes qué contenido genera clientes reales?', o:['No','Intuición','Patrones notados','Datos exactos y replicables'] },
+    { p:2, t:'¿Capturas contactos fuera de redes (WhatsApp/Email)?', o:['No','A veces','Tengo lista pero inactiva','Sistema activo de captura'] },
+    { p:2, t:'¿Conoces el costo de conseguir un cliente nuevo?', o:['No','En tiempo sí','Estimación vaga','Cálculo exacto (CAC)'] },
+    { p:2, t:'¿Tu presencia digital refleja tu calidad real?', o:['No','Se acerca','Bastante bien','Refleja mi máximo nivel'] },
+    { p:2, t:'¿Proceso definido desde contacto a cierre?', o:['No','Pasos mentales','Definido pero no constante','Documentado y sistemático'] },
+    { p:2, t:'¿Sabes manejar las 5 objeciones más comunes?', o:['No','Improviso','Respuestas vagas','Respuestas probadas y listas'] },
+    { p:2, t:'¿Estrategias de retención de clientes?', o:['No','Buen servicio nada más','Acciones sueltas','Sistema de recompra activo'] },
+    { p:2, t:'¿Sabes cuánto vale un cliente en el tiempo (LTV)?', o:['No','Idea vaga','Número aproximado','Dato exacto usado para decidir'] },
+    { p:2, t:'¿Métricas claras de éxito en ventas?', o:['No','Solo si entró dinero','KPIs sueltos','Dashboard semanal revisado'] },
+    // PILLAR 3: FUNDADOR (31-45)
+    { p:3, t:'¿Nivel de energía promedio?', o:['Agotado','Altibajos fuertes','Bien con sobrecargas','Energía alta constante'] },
+    { p:3, t:'¿Ansiedad o estrés relacionado al negocio?', o:['Constante','Varias veces/semana','Ocasional','Rara vez, bajo control'] },
+    { p:3, t:'¿Desconexión real sin culpa?', o:['Nunca','A veces con culpa','Casi siempre','Límites claros, desconexión total'] },
+    { p:3, t:'¿Decisiones tomadas en buen estado mental?', o:['Bajo presión siempre','Variable','Generalmente bien','Estado cuidado conscientemente'] },
+    { p:3, t:'¿Descanso reparador y rutina de sueño?', o:['No','Irregular','Casi siempre bien','Rutina sólida y reparadora'] },
+    { p:3, t:'¿Claridad en las 3 tareas más importantes de la semana?', o:['No','Cambian mucho','Sé lo prioritario','Prioridades claras y protegidas'] },
+    { p:3, t:'¿Delegas tareas que no requieren tu presencia?', o:['Hago todo','Intento pero fallo','Delego algo','Sistema de delegación claro'] },
+    { p:3, t:'¿Tiempo para pensar SOBRE el negocio (estrategia)?', o:['Nunca','Rara vez','Trato de equilibrar','Bloques estratégicos fijos'] },
+    { p:3, t:'¿Sensación de avance al final del día?', o:['Solo ocupado','A veces progreso','Mayoría de días con progreso','Claridad total de logros diarios'] },
+    { p:3, t:'¿Rutina semanal de productividad?', o:['No','Intento','Con muchas excepciones','Rutina sólida y sostenida'] },
+    { p:3, t:'¿Actualización en tendencias de tu industria?', o:['No','Casual','Informado','Fuentes fijas y constante'] },
+    { p:3, t:'¿Inversión en formación profesional?', o:['No','Ocasional','Sin plan claro','Plan de formación activo'] },
+    { p:3, t:'¿Conoces tus fortalezas y debilidades reales?', o:['No','Intuición','Lo sé pero no actúo','Estrategia basada en capacidades'] },
+    { p:3, t:'¿Red de apoyo (mentores/pares)?', o:['Solo','Pocos contactos','Red informal','Red activa de apoyo'] },
+    { p:3, t:'¿Metas claras y medibles a 90 días?', o:['No','Vagas','Documentadas pero sin revisión','Metas SMART revisadas semanalmente'] }
 ];
 
 const profiles = [
-  { n:'🌱 El Negocio Embrión', r:[0,54], d:'Tienes pasión, pero falta estructura básica.' },
-  { n:'🌀 El Fundador Caótico', r:[55,90], d:'Hay movimiento pero sin dirección clara. Operas en urgencia.' },
-  { n:'🏔️ El Emprendedor Estancado', r:[91,126], d:'Tienes bases pero llegaste a un techo operativo.' },
-  { n:'🏗️ El Negocio en Construcción', r:[127,162], d:'Va bien. Ahora toca sistematizar para delegar.' },
-  { n:'⚙️ El Sistema Funcionando', r:[163,180], d:'Estructura sólida. Momento de escalar e impactar.' }
+    { n:'🌱 El Negocio Embrión', r:[0,54], d:'Falta estructura básica.' },
+    { n:'🌀 El Fundador Caótico', r:[55,90], d:'Operas en modo urgencia.' },
+    { n:'🏔️ El Emprendedor Estancado', r:[91,126], d:'Llegaste a un techo operativo.' },
+    { n:'🏗️ El Negocio en Construcción', r:[127,162], d:'Toca sistematizar para delegar.' },
+    { n:'⚙️ El Sistema Funcionando', r:[163,180], d:'Estructura sólida lista para escalar.' }
 ];
 
 let currentQ = 0;
-let answers = new Array(45).fill(null);
+let answers = [];
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
 }
 
-function renderQuestion(idx) {
-  const q = questions[idx];
-  document.getElementById('progress-text').textContent = `PILAR ${q.p} · Pregunta ${idx+1} de 45`;
-  document.getElementById('q-text').textContent = q.text;
-  const opts = document.getElementById('q-options');
-  opts.innerHTML = '';
-  q.o.forEach((opt, i) => {
-    const div = document.createElement('div');
-    div.className = 'q-option';
-    div.textContent = opt;
-    div.onclick = () => {
-      answers[idx] = i;
-      if (idx < 44) {
-        currentQ++;
-        renderQuestion(currentQ);
-      } else {
-        showScreen('loading');
-      }
-    };
-    opts.appendChild(div);
-  });
+function startApp() { showScreen('assessment'); renderQuestion(); }
+
+function renderQuestion() {
+    const q = questions[currentQ];
+    document.getElementById('progress').textContent = `Pilar ${q.p} · Pregunta ${currentQ + 1} de 45`;
+    document.getElementById('q-text').textContent = q.t;
+    const container = document.getElementById('q-options');
+    container.innerHTML = '';
+    q.o.forEach((opt, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'q-option';
+        btn.textContent = opt;
+        btn.onclick = () => {
+            answers.push(i + 1);
+            currentQ++;
+            if(currentQ < questions.length) renderQuestion();
+            else showScreen('loading');
+        };
+        container.appendChild(btn);
+    });
 }
 
-function processFinalResults() {
-  const nombre = document.getElementById('reg-name').value;
-  const correo = document.getElementById('reg-email').value;
-  const pais = document.getElementById('reg-country').value;
-  const area = document.getElementById('reg-area').value;
-  const tiempo = document.getElementById('reg-time').value;
+function processResults() {
+    const n = document.getElementById('reg-name').value;
+    const c = document.getElementById('reg-email').value;
+    const pa = document.getElementById('reg-country').value;
+    const a = document.getElementById('reg-area').value;
+    const t = document.getElementById('reg-time').value;
 
-  if (!nombre || !correo.includes('@') || !pais || !area || !tiempo) {
-    alert("Lei necesita todos los campos para procesar tu diagnóstico.");
-    return;
-  }
+    if(!n || !c || !pa || !a || !t) return alert("Completa todos los campos.");
 
-  const p1 = answers.slice(0,15).reduce((s,a) => s + (a+1), 0);
-  const p2 = answers.slice(15,30).reduce((s,a) => s + (a+1), 0);
-  const p3 = answers.slice(30,45).reduce((s,a) => s + (a+1), 0);
-  const total = p1 + p2 + p3;
-  const prof = profiles.find(p => total >= p.r[0] && total <= p.r[1]) || profiles[4];
+    const p1 = answers.slice(0,15).reduce((a, b) => a + b, 0);
+    const p2 = answers.slice(15,30).reduce((a, b) => a + b, 0);
+    const p3 = answers.slice(30,45).reduce((a, b) => a + b, 0);
+    const total = p1 + p2 + p3;
+    const prof = profiles.find(p => total >= p.r[0] && total <= p.r[1]) || profiles[4];
 
-  // 1. ENVIAR A GOOGLE SHEETS
-  // -------------------------------------------------------------
-  fetch('https://script.google.com/macros/s/AKfycbwfAwibyfm543YfLBeeVqfi6eQqUE_ec84FskOIarEkzIB9wD05X3JDug9fTdz_TNTSGw/exec', { // <-- PEGA TU URL AQUÍ
-    method: 'POST',
-    mode: 'no-cors',
-    body: JSON.stringify({ nombre, correo, pais, area, tiempo, total, perfil: prof.n })
-  });
+    fetch('https://script.google.com/macros/s/AKfycbwfAwibyfm543YfLBeeVqfi6eQqUE_ec84FskOIarEkzIB9wD05X3JDug9fTdz_TNTSGw/exec', { 
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ nombre:n, correo:c, pais:pa, area:a, tiempo:t, total:total, perfil:prof.n })
+    });
 
-  // 2. MOSTRAR RESULTADOS
-  // -------------------------------------------------------------
-  const html = `
-    <div class="results-body">
-      <h2 style="font-family:'Playfair Display',serif; color:var(--terra); margin-bottom:10px;">${prof.n}</h2>
-      <p style="margin-bottom:20px;">Puntaje Total: <strong>${total} / 180</strong></p>
-      <div class="pillar-row">📐 Negocio: ${p1}/60 <div class="pillar-bar"><div class="pillar-fill" style="width:${(p1/60)*100}%"></div></div></div>
-      <div class="pillar-row">🎯 Marca: ${p2}/60 <div class="pillar-bar"><div class="pillar-fill" style="width:${(p2/60)*100}%"></div></div></div>
-      <div class="pillar-row">💚 Fundador: ${p3}/60 <div class="pillar-bar"><div class="pillar-fill" style="width:${(p3/60)*100}%"></div></div></div>
-      <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; margin:20px 0;">
+    document.getElementById('results-content').innerHTML = `
+        <h2 style="color:var(--terra);">${prof.n}</h2>
+        <p>Puntaje: ${total} / 180</p>
+        <div class="pillar-bar"><div class="pillar-fill" style="width:${(p1/60)*100}%"></div></div>
         <p>${prof.d}</p>
-      </div>
-      <button class="btn-primary" onclick="sendWhatsApp('${nombre}', '${prof.n}', ${total}, '${correo}', '${pais}', '${area}', '${tiempo}')">Enviar diagnóstico a Lei por WhatsApp →</button>
-    </div>
-  `;
-  document.getElementById('results-content').innerHTML = html;
-  showScreen('results');
+        <button class="btn-primary" onclick="sendWA('${n}','${prof.n}','${pa}','${total}','${a}')">Enviar a Lei</button>
+    `;
+    showScreen('results');
 }
 
-function sendWhatsApp(n, p, s, c, pa, a, t) {
-  const telefono = "584144923794"; // <-- PON TU NÚMERO AQUÍ (Sin el +)
-  const msj = encodeURIComponent(`¡Hola Lei! Soy ${n} de ${pa}.
-Acabo de completar el diagnóstico de Equilibrio Academy.
-
-• Mi perfil: ${p} (${s}/180)
-• Mi área: ${a}
-• Tiempo: ${t}
-• Mi correo: ${c}
-
-Me gustaría conversar sobre mi plan de acción.`);
-  window.open(`https://wa.me/${telefono}?text=${msj}`, '_blank');
+function sendWA(n, p, pa, s, a) {
+    const tel = "584144923794"; 
+    const url = `https://wa.me/${tel}?text=Hola%20Lei!%20Soy%20${n}%20de%20${pa}.%20Puntaje:%20${s}/180.%20Perfil:%20${p}.%20Area:%20${a}`;
+    window.open(url, '_blank');
 }
 </script>
 </body>
